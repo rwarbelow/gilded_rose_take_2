@@ -2,56 +2,59 @@ BRIE = 'Aged Brie'
 BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert'
 SULFURAS = 'Sulfuras, Hand of Ragnaros'
 
-def update_quality(items)
-  items.each do |item|
+class ItemUpdater
+  attr_reader :item, :change_by_value
+  def initialize(item, change_by_value)
+    @item = item
+    @change_by_value = change_by_value
+  end
 
-    if item.name != BRIE && item.name != BACKSTAGE_PASS
-      if item.quality > 0
-        if item.name != SULFURAS
-          item.quality -= 1
-        end
-      end
-    else
-      if item.quality < 50
-        item.quality += 1
-        if item.name == BACKSTAGE_PASS
-          if item.sell_in < 11
-            if item.quality < 50
-              item.quality += 1
-            end
-          end
-          if item.sell_in < 6
-            if item.quality < 50
-              item.quality += 1
-            end
-          end
-        end
-      end
-    end
+  def update
+    item.sell_in -= 1
+    update_item_quality
+    update_item_quality if expired?
+  end
 
+  def expired?
+    item.sell_in < 0
+  end
 
-    if item.name != SULFURAS
-      item.sell_in -= 1
-    end
-
-
-    if item.sell_in < 0
-      if item.name == BRIE 
-        if item.quality < 50
-          item.quality += 1
-        end
-      elsif item.name == BACKSTAGE_PASS 
-        item.quality = item.quality - item.quality
-      elsif item.name == SULFURAS
-        # nothing yet
-      else
-        if item.quality > 0
-          item.quality -= 1
-        end          
-      end
+  def update_item_quality
+    if item.quality < 50 && item.quality > 0
+      item.quality += change_by_value
     end
   end
 end
+
+class BackstagePassUpdater < ItemUpdater
+  def change_by_value
+    if expired?
+      -item.quality
+    elsif item.sell_in < 5
+      3
+    elsif item.sell_in < 10
+      2
+    else
+      @change_by_value
+    end
+  end
+end
+
+def update_quality(items)
+  items.each do |item|
+    case item.name
+    when BACKSTAGE_PASS
+      BackstagePassUpdater.new(item, 1).update
+    when BRIE
+      ItemUpdater.new(item, 1).update
+    when SULFURAS
+      # nothing yet
+    else
+      ItemUpdater.new(item, -1).update
+    end
+  end
+end
+
 
 # DO NOT CHANGE THINGS BELOW -----------------------------------------
 
