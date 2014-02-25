@@ -3,7 +3,9 @@ BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert'
 SULFURAS = 'Sulfuras, Hand of Ragnaros'
 
 class ItemUpdater
+
   attr_reader :item, :change_by_value
+
   def initialize(item, change_by_value)
     @item = item
     @change_by_value = change_by_value
@@ -24,9 +26,11 @@ class ItemUpdater
       item.quality += change_by_value
     end
   end
+
 end
 
 class BackstagePassUpdater < ItemUpdater
+
   def change_by_value
     if expired?
       -item.quality
@@ -38,9 +42,11 @@ class BackstagePassUpdater < ItemUpdater
       @change_by_value
     end
   end
+
 end
 
 def update_quality(items)
+
   items.each do |item|
     case item.name
     when BACKSTAGE_PASS
@@ -53,6 +59,7 @@ def update_quality(items)
       ItemUpdater.new(item, -1).update
     end
   end
+  
 end
 
 
